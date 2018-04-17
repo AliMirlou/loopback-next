@@ -31,10 +31,6 @@ function run(argv, options) {
   const isTargetSet = utils.isOptionSet(compilerOpts, '--target');
   const isOutDirSet = utils.isOptionSet(compilerOpts, '--outDir');
   const isProjectSet = utils.isOptionSet(compilerOpts, '-p', '--project');
-  const isCopyResourcesSet = utils.isOptionSet(
-    compilerOpts,
-    '--copy-resources'
-  );
 
   var target;
 
@@ -119,13 +115,14 @@ function run(argv, options) {
 
     if (rootDir && tsConfigFile && isCopyResourcesSet) {
       const tsConfig = require(tsConfigFile);
-      if (tsConfig.include) {
-        const dirs = tsConfig.include.join('|');
-        const pattern = `@(${dirs})/**/!(*.ts)`;
-        const files = glob.sync(pattern, {root: packageDir, nodir: true});
-        for (const file of files) {
-          fse.copySync(path.join(packageDir, file), path.join(outDir, file));
-        }
+      const dirs = tsConfig.include
+        ? tsconfig.include.join('|')
+        : ['src', 'test'].join('|');
+
+      const pattern = `@(${dirs})/**/!(*.ts)`;
+      const files = glob.sync(pattern, {root: packageDir, nodir: true});
+      for (const file of files) {
+        fse.copySync(path.join(packageDir, file), path.join(outDir, file));
       }
     }
   }
