@@ -149,6 +149,7 @@ function buildOperationArguments(
       }
     }
   }
+  if (requestBodyIndex > -1) coercedParamArgs.splice(requestBodyIndex, 0, body);
 
   return coercedParamArgs;
 }

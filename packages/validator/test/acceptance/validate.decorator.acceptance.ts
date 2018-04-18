@@ -1,6 +1,15 @@
-import {RestApplication, get, param, RestServer} from '@loopback/rest';
+import {
+  RestApplication,
+  get,
+  param,
+  RestServer,
+  post,
+  requestBody,
+} from '@loopback/rest';
 import {validate, validatable} from '../..';
 import {supertest, createClientForHandler} from '@loopback/testlab';
+import {model, property} from '@loopback/repository';
+import {getJsonSchema, JsonDefinition} from '@loopback/repository-json-schema';
 
 describe('validate decorator', () => {
   let app: RestApplication;
@@ -17,6 +26,12 @@ describe('validate decorator', () => {
   after(async () => {
     await app.stop();
   });
+
+  @model()
+  class TestModel {
+    @property() str: string;
+    @property() num: number;
+  }
 
   class TestController {
     @get('/simple')
@@ -58,6 +73,14 @@ describe('validate decorator', () => {
       })
       num2: number,
     ) {}
+
+    @post('/custom')
+    @validatable()
+    custom(
+      @requestBody()
+      @validate(getJsonSchema(TestModel))
+      body: TestModel,
+    ) {}
   }
   it('simple valid', async () => {
     await client.get('/simple?str=foo@bar.com').expect(200);
@@ -81,6 +104,26 @@ describe('validate decorator', () => {
 
   it('select invalid', async () => {
     await client.get('/select/5?str=foo@bar.com&num2=6').expect(422);
+  });
+
+  it('custom valid', async () => {
+    await client
+      .post('/custom')
+      .send({
+        str: 'testString',
+        num: 10,
+      })
+      .expect(200);
+  });
+
+  it('custom invalid', async () => {
+    await client
+      .post('/custom')
+      .send({
+        str: 10,
+        num: 10,
+      })
+      .expect(422);
   });
 
   function givenAnApplication() {

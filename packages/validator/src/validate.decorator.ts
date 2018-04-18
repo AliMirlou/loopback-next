@@ -42,6 +42,7 @@ export function validatable() {
         if (schema) {
           const isValid = ajv.validate(schema, args[i]);
           if (!isValid) {
+            console.error(ajv.errors);
             throw new HttpErrors.UnprocessableEntity('bad param');
           }
         }
