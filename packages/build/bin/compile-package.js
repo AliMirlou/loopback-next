@@ -123,6 +123,9 @@ function run(argv, options) {
   if (outDir) {
     args.push('--outDir', outDir);
 
+    // Since outDir is set, ts files are compiled into that directory.
+    // If ignore-resources flag is not passed, copy resources (non-ts files)
+    // to the same outDir as well.
     if (rootDir && tsConfigFile && !isIgnoreResourcesSet) {
       const tsConfig = require(tsConfigFile);
       const dirs = tsConfig.include
