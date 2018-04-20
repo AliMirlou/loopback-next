@@ -31,8 +31,18 @@ function run(argv, options) {
   const isTargetSet = utils.isOptionSet(compilerOpts, '--target');
   const isOutDirSet = utils.isOptionSet(compilerOpts, '--outDir');
   const isProjectSet = utils.isOptionSet(compilerOpts, '-p', '--project');
+  const isIgnoreResourcesSet = utils.isOptionSet(
+    compilerOpts,
+    '--ignore-resources'
+  );
 
   var target;
+
+  // --ignore-resources is not a TS Compiler option so we remove it from the
+  // list of compiler options to avoid compiler errors.
+  if (isIgnoreResourcesSet) {
+    compilerOpts.splice(compilerOpts.indexOf('--ignore-resources'), 1);
+  }
 
   if (!isTargetSet) {
     // Find the last non-option argument as the `target`
@@ -113,10 +123,10 @@ function run(argv, options) {
   if (outDir) {
     args.push('--outDir', outDir);
 
-    if (rootDir && tsConfigFile && isCopyResourcesSet) {
+    if (rootDir && tsConfigFile && !isIgnoreResourcesSet) {
       const tsConfig = require(tsConfigFile);
       const dirs = tsConfig.include
-        ? tsconfig.include.join('|')
+        ? tsConfig.include.join('|')
         : ['src', 'test'].join('|');
 
       const pattern = `@(${dirs})/**/!(*.ts)`;
